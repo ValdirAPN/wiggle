@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">Wiggles</string>
+    <string name="greeting">Hey %1$s,</string>
+    <string name="home_header_message">Adopt a new friend near you!</string>
+    <string name="switch_to_light_theme">Switch to light theme</string>
+    <string name="switch_to_dark_theme">Switch to dark theme</string>
+    <string name="nearby_results">Nearby results</string>
+    <string name="no_results_found">No results found</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
+    <string name="years">%1$d yrs</string>
+    <string name="distance_from">%1$dm away</string>
+    <string name="distance">Distance</string>
 </resources>
