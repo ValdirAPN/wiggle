@@ -2,13 +2,13 @@ package br.com.wiggles.data
 
 import br.com.wiggles.BuildConfig
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
 import retrofit2.http.POST
+import javax.inject.Inject
 
-interface PetfinderApi {
+interface PetfinderAuthApi {
     @FormUrlEncoded
     @POST("oauth2/token")
     suspend fun getToken(
@@ -18,21 +18,30 @@ interface PetfinderApi {
     ): Response<TokenResponse>
 }
 
-private const val PetfinderBaseUrl = "https://api.petfinder.com/v2/"
+interface PetfinderApi {
 
-class PetfinderNetwork {
+    @GET("animals")
+    suspend fun getAnimals(): Response<AnimalsResponse>
+}
 
-    private val networkApi = Retrofit.Builder()
-        .baseUrl(PetfinderBaseUrl)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-        .create(PetfinderApi::class.java)
 
+class PetfinderAuthNetwork @Inject constructor(
+    private val networkApi: PetfinderAuthApi
+) {
     suspend fun getToken(): TokenResponse? = networkApi
         .getToken(
             "client_credentials",
             BuildConfig.PETFINDER_CLIENT_ID,
             BuildConfig.PETFINDER_CLIENT_SECRET
         )
+        .body()
+}
+
+class PetfinderNetwork @Inject constructor(
+    private val networkApi: PetfinderApi
+) {
+
+    suspend fun getAnimals(): AnimalsResponse? = networkApi
+        .getAnimals()
         .body()
 }

@@ -18,7 +18,6 @@ import br.com.wiggles.presentation.home.NEARBY_RESULT_ITEM_TEST_TAG
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDateTime
-import java.util.UUID
 
 class HomeScreenInstrumentedTest {
 
@@ -152,7 +151,7 @@ class HomeScreenInstrumentedTest {
         with(composeTestRule) {
             val animals = listOf(
                 Animal(
-                    id = UUID.randomUUID().toString(),
+                    id = 1,
                     name = "Marley",
                     age = 4,
                     gender = Gender.MALE,

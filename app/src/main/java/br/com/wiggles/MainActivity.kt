@@ -25,14 +25,14 @@ import br.com.wiggles.presentation.MainUiState
 import br.com.wiggles.presentation.MainViewModel
 import br.com.wiggles.presentation.home.HomeScreen
 import br.com.wiggles.ui.theme.WigglesTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val mainViewModel: MainViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        mainViewModel.getToken()
 
         setContent {
             var darkTheme by remember { mutableStateOf(false) }
@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    when (mainUiState) {
+                    when (val state = mainUiState) {
                         MainUiState.Loading -> {
                             Column(
                                 Modifier.fillMaxSize(),
@@ -56,14 +56,16 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        MainUiState.Error -> {}
+                        MainUiState.Error -> {
+                            Text(text = "Error")
+                        }
 
-                        else -> {
+                        is MainUiState.Success -> {
                             HomeScreen(
                                 username = "Spikey",
                                 darkTheme = darkTheme,
                                 onSwitchTheme = { darkTheme = !darkTheme },
-                                nearbyResults = Animal.fakeList()
+                                nearbyResults = state.animals
                             )
                         }
                     }
