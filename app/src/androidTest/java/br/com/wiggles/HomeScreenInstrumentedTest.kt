@@ -10,7 +10,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import br.com.wiggles.domain.model.Animal
+import br.com.wiggles.domain.model.Pet
 import br.com.wiggles.domain.model.Gender
 import br.com.wiggles.presentation.home.HomeScreen
 import br.com.wiggles.presentation.home.NEARBY_RESULTS_LIST_TEST_TAG
@@ -133,7 +133,7 @@ class HomeScreenInstrumentedTest {
     fun home_whenLoaded_shouldDisplayNearbyResultsItems() {
         with(composeTestRule) {
             val itemsCount = 3
-            val nearbyResults = Animal.fakeList().take(itemsCount)
+            val nearbyResults = Pet.fakeList().take(itemsCount)
 
             activity.setContent {
                 HomeScreen(nearbyResults = nearbyResults)
@@ -147,13 +147,14 @@ class HomeScreenInstrumentedTest {
     }
 
     @Test
-    fun nearbyResultItem_whenVisible_shouldDisplayAnimalGenderAgeAndDistance() {
+    fun nearbyResultItem_whenVisible_shouldDisplayPetGenderAgeAndDistance() {
         with(composeTestRule) {
-            val animals = listOf(
-                Animal(
+            val pets = listOf(
+                Pet(
                     id = 1,
                     name = "Marley",
-                    age = 4,
+                    description = "",
+                    age = "Senior",
                     gender = Gender.MALE,
                     distance = 1000L,
                     postedAt = LocalDateTime.now()
@@ -161,7 +162,7 @@ class HomeScreenInstrumentedTest {
             )
 
             activity.setContent {
-                HomeScreen(nearbyResults = animals)
+                HomeScreen(nearbyResults = pets)
             }
 
             val maleText = activity.getString(R.string.male)

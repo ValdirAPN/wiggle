@@ -6,6 +6,7 @@ import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import javax.inject.Inject
 
 interface PetfinderAuthApi {
@@ -21,7 +22,10 @@ interface PetfinderAuthApi {
 interface PetfinderApi {
 
     @GET("animals")
-    suspend fun getAnimals(): Response<AnimalsResponse>
+    suspend fun getPets(): Response<PetsResponse>
+
+    @GET("animals/{id}")
+    suspend fun getPet(@Path("id") petId: String): Response<SinglePetResponse>
 }
 
 
@@ -41,7 +45,12 @@ class PetfinderNetwork @Inject constructor(
     private val networkApi: PetfinderApi
 ) {
 
-    suspend fun getAnimals(): AnimalsResponse? = networkApi
-        .getAnimals()
+    suspend fun getPets(): PetsResponse? = networkApi
+        .getPets()
         .body()
+
+    suspend fun getPet(petId: String): PetResponse? = networkApi
+        .getPet(petId)
+        .body()
+        ?.animal
 }

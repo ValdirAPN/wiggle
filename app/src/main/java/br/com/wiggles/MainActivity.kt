@@ -4,10 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -16,14 +13,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import br.com.wiggles.domain.model.Animal
-import br.com.wiggles.presentation.MainUiState
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import br.com.wiggles.presentation.MainViewModel
-import br.com.wiggles.presentation.home.HomeScreen
+import br.com.wiggles.presentation.home.HomeRoute
+import br.com.wiggles.presentation.petdetails.PetDetailsRoute
+import br.com.wiggles.presentation.petdetails.PetDetailsViewModel
 import br.com.wiggles.ui.theme.WigglesTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -36,7 +36,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             var darkTheme by remember { mutableStateOf(false) }
-            val mainUiState by mainViewModel.mainUiState.collectAsStateWithLifecycle()
+            val token by mainViewModel.token.collectAsStateWithLifecycle()
+
+            val navController = rememberNavController()
 
             WigglesTheme(
                 darkTheme = darkTheme
@@ -45,28 +47,21 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    when (val state = mainUiState) {
-                        MainUiState.Loading -> {
-                            Column(
-                                Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                CircularProgressIndicator()
+                    if (token != null) {
+                        NavHost(navController = navController, startDestination = "home") {
+                            composable("home") {
+                                HomeRoute(
+                                    username = "Jon Doe",
+                                    darkTheme = darkTheme,
+                                    onSwitchTheme = { darkTheme = !darkTheme },
+                                    onClickPetItem = { petId -> navController.navigate("petDetails/$petId") }
+                                )
                             }
-                        }
-
-                        MainUiState.Error -> {
-                            Text(text = "Error")
-                        }
-
-                        is MainUiState.Success -> {
-                            HomeScreen(
-                                username = "Spikey",
-                                darkTheme = darkTheme,
-                                onSwitchTheme = { darkTheme = !darkTheme },
-                                nearbyResults = state.animals
-                            )
+                            composable("petDetails/{petId}") {
+                                PetDetailsRoute(
+                                    onNavigateUp = { navController.navigateUp() }
+                                )
+                            }
                         }
                     }
                 }

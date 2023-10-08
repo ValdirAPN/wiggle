@@ -11,4 +11,7 @@
     <string name="years">%1$d yrs</string>
     <string name="distance_from">%1$dm away</string>
     <string name="distance">Distance</string>
+    <string name="about_me">About me</string>
+    <string name="quick_info">Quick info</string>
+    <string name="contact_info">Contact info</string>
 </resources>

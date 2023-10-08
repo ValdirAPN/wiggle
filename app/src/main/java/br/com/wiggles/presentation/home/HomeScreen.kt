@@ -1,13 +1,13 @@
 package br.com.wiggles.presentation.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,12 +16,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,8 +36,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.com.wiggles.R
-import br.com.wiggles.domain.model.Animal
+import br.com.wiggles.domain.model.Pet
 import br.com.wiggles.domain.model.Gender
 import br.com.wiggles.ui.theme.Blue60
 import br.com.wiggles.ui.theme.Red60
@@ -46,13 +50,50 @@ const val NEARBY_RESULTS_LIST_TEST_TAG = "nearby_results_list_test_tag"
 const val NEARBY_RESULT_ITEM_TEST_TAG = "nearby_result_item_test_tag"
 const val NEARBY_RESULTS_EMPTY_TEST_TAG = "nearby_results_empty_test_tag"
 
+@Composable
+fun HomeRoute(
+    username: String = "",
+    darkTheme: Boolean = false,
+    onSwitchTheme: () -> Unit = {},
+    onClickPetItem: (petId: Int) -> Unit = {},
+    homeViewModel: HomeViewModel = hiltViewModel()
+) {
+    val homeUiState by homeViewModel.homeUiState.collectAsStateWithLifecycle()
+
+    when (val state = homeUiState) {
+        NearbyUiState.Loading -> {
+            Column(
+                Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
+        NearbyUiState.Error -> {
+            Text(text = "Error")
+        }
+
+        is NearbyUiState.Success -> {
+            HomeScreen(
+                username = username,
+                darkTheme = darkTheme,
+                onSwitchTheme = onSwitchTheme,
+                nearbyResults = state.pets,
+                onClickPetItem = onClickPetItem
+            )
+        }
+    }
+}
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     username: String = "",
     darkTheme: Boolean = false,
     onSwitchTheme: () -> Unit = {},
-    nearbyResults: List<Animal> = listOf()
+    nearbyResults: List<Pet> = listOf(),
+    onClickPetItem: (petId: Int) -> Unit = {},
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -87,10 +128,10 @@ fun HomeScreen(
                 items(
                     key = { item -> item.id },
                     items = nearbyResults
-                ) { animal ->
-                    NearbyAnimal(
-                        modifier = Modifier.testTag(NEARBY_RESULT_ITEM_TEST_TAG),
-                        animal = animal
+                ) { pet ->
+                    NearbyPet(
+                        modifier = Modifier.testTag(NEARBY_RESULT_ITEM_TEST_TAG).clickable { onClickPetItem(pet.id) },
+                        pet = pet
                     )
                 }
             }
@@ -148,9 +189,9 @@ fun HomeHeader(
 }
 
 @Composable
-fun NearbyAnimal(
+fun NearbyPet(
     modifier: Modifier = Modifier,
-    animal: Animal
+    pet: Pet
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -169,7 +210,7 @@ fun NearbyAnimal(
                     .size(100.dp)
                     .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop,
-                model = animal.imageUrl,
+                model = pet.petImage?.mediumImageUrl,
                 contentDescription = null,
                 placeholder = painterResource(id = R.drawable.paw),
                 error = painterResource(id = R.drawable.paw),
@@ -183,14 +224,14 @@ fun NearbyAnimal(
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = animal.name.lowercase().replaceFirstChar { it.uppercase() },
+                        text = pet.name.lowercase().replaceFirstChar { it.uppercase() },
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Normal),
                         color = MaterialTheme.colorScheme.onSurface,
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1
                     )
 
-                    val (gender, color) = when (animal.gender) {
+                    val (gender, color) = when (pet.gender) {
                         Gender.MALE -> Pair(stringResource(id = R.string.male), Blue60)
                         Gender.FEMALE -> Pair(stringResource(id = R.string.female), Red60)
                     }
@@ -204,7 +245,7 @@ fun NearbyAnimal(
                     )
                 }
 
-                val age = stringResource(id = R.string.years, animal.age)
+                val age = pet.age
                 Text(
                     modifier = Modifier.padding(top = 8.dp),
                     text = age,
@@ -216,7 +257,7 @@ fun NearbyAnimal(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val distance = stringResource(id = R.string.distance_from, animal.distance)
+                    val distance = stringResource(id = R.string.distance_from, pet.distance)
 
                     Icon(
                         painter = painterResource(id = R.drawable.pin),
@@ -233,11 +274,11 @@ fun NearbyAnimal(
 
 @Preview
 @Composable
-fun NearbyAnimalPreview() {
+fun NearbyPetPreview() {
     WigglesTheme {
         Surface {
-            val animal = Animal.fakeList().first()
-            NearbyAnimal(animal = animal)
+            val pet = Pet.fakeList().first()
+            NearbyPet(pet = pet)
         }
     }
 }
